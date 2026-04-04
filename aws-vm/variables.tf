@@ -17,11 +17,11 @@ variable "instance_type_name" {
    default = "t2.micro"
 }
 
-variable "key_pair_name" {
-    description = "Name of Key Pair"
-   type = string
-   default = "us-east-1-devops-user"
-}
+# variable "key_pair_name" {
+#     description = "Name of Key Pair"
+#    type = string
+#    default = "us-east-1-devops-user"
+# }
 
 
 
