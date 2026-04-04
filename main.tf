@@ -105,8 +105,8 @@ output "virtual_network_name" {
   
 }
 
-output "azurerm_public_ip" {
-  value = azurerm_subnet.example.name
+output "public_ip_name_azure" {
+  value = azurerm_public_ip.example.ip_address
   
 }
 
