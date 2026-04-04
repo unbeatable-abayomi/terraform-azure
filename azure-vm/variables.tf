@@ -1,0 +1,31 @@
+variable "resource_group_name" {
+   description = "Name of Resource Group"
+   type = string
+   default = "terraform-rg"
+}
+
+variable "location" {
+  description = "Location to deploy Resources"
+  type = string
+  default = "ukwest"
+}
+
+
+variable "vm_name" {
+  description = "Name of VM"
+  type = string
+  default = "example-tf-machine"
+}
+
+
+variable "vm_size" {
+  description = "Size of VM"
+  type = string
+  default = "Standard_D2s_v3"
+}
+
+variable "usernamessh" {
+  description = "The username for SSH"
+  type = string
+  default = "adminuser"
+}

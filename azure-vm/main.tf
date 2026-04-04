@@ -8,9 +8,11 @@ provider "azurerm" {
 
 # Create a Resource Group
 resource "azurerm_resource_group" "example" {
-  name     = "terraform-rg"
+  #name     = "terraform-rg"
   #location = "East US"
-  location = "ukwest"
+  #location = "ukwest"
+  name = var.resource_group_name
+  location = var.location
 } 
 
 # Create  a Storage Account
@@ -63,10 +65,12 @@ variable "ssh_public_key_path" {
 }
 
 resource "azurerm_linux_virtual_machine" "example" {
-  name                = "example-machine"
+  #name                = "example-machine"
+  name                = var.vm_name
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  size                = "Standard_D2s_v3"
+  #size                = "Standard_D2s_v3"
+  size                =  var.vm_size
   admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.example.id,
@@ -74,7 +78,8 @@ resource "azurerm_linux_virtual_machine" "example" {
   
 
   admin_ssh_key {
-    username   = "adminuser"
+    #username   = "adminuser"
+    username   = var.usernamessh
     public_key = file(pathexpand(var.ssh_public_key_path))
   }
 
@@ -113,115 +118,5 @@ resource "azurerm_network_security_group" "example" {
 resource "azurerm_network_interface_security_group_association" "example" {
   network_interface_id      = azurerm_network_interface.example.id
   network_security_group_id = azurerm_network_security_group.example.id
-}
-
-
-# Output the strorage account name after creation
-output "storage_account_name" {
-  value = azurerm_storage_account.example.name
-}
-
-# Output the resource group name after creation
-output "resource_group_name" {
-  value = azurerm_resource_group.example.name
-}
-
-
-output "virtual_network_name" {
-  value = azurerm_virtual_network.example.name
-  
-}
-
-output "public_ip_name_azure" {
-  value = azurerm_public_ip.example.ip_address
-  
-}
-
-output "subnet_name" {
-  value = azurerm_subnet.example.name
-  
-}
-
-
-output "network_interface_name" {
-  value = azurerm_network_interface.example.name
-  
-}
-
-
-output "linux_virtual_machine_name" {
-  value = azurerm_linux_virtual_machine.example.name
-  
-}
-
-
-
-# 1. Specify the Provider
-provider "aws" {
-  region = "us-east-1" # North Virginia
-}
-
-# 2. Create the VPC (The "House")
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
-  tags = { Name = "terraform-vpc" }
-}
-
-# 3. Create an Internet Gateway (The "Front Door")
-resource "aws_internet_gateway" "gw" {
-  vpc_id = aws_vpc.main.id
-}
-
-# 4. Create a Public Subnet
-resource "aws_subnet" "public" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true # This gives the VM a Public IP automatically
-}
-
-# 5. Route Table (The "Directions" to the Internet)
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.gw.id
-  }
-}
-
-resource "aws_route_table_association" "a" {
-  subnet_id      = aws_subnet.public.id
-  route_table_id = aws_route_table.public_rt.id
-}
-
-# 6. Security Group (The "Firewall")
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # In a real NOC, you'd put your IP here
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# 7. The Virtual Machine (EC2 Instance)
-resource "aws_instance" "web" {
-  ami           = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS in us-east-1
-  instance_type = "t2.micro"             # Free Tier eligible
-  key_name      = "us-east-1-devops-user" # The exact name as it appears in AWS Console
-  subnet_id              = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.allow_ssh.id]
-
-  tags = { Name = "Terraform-Ubuntu-VM" }
 }
 
