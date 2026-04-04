@@ -1,6 +1,9 @@
-# Specify the Terraform provider
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 # Create a Resource Group
@@ -68,6 +71,7 @@ resource "azurerm_linux_virtual_machine" "example" {
   network_interface_ids = [
     azurerm_network_interface.example.id,
   ]
+  
 
   admin_ssh_key {
     username   = "adminuser"
@@ -87,6 +91,24 @@ resource "azurerm_linux_virtual_machine" "example" {
   }
 }
 
+
+resource "azurerm_network_security_group" "example" {
+  name                = "example-nsg"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*" # In a real NOC role, you would change this to your home IP
+    destination_address_prefix = "*"
+  }
+}
 
 
 # Output the strorage account name after creation
@@ -191,7 +213,7 @@ resource "aws_security_group" "allow_ssh" {
 resource "aws_instance" "web" {
   ami           = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS in us-east-1
   instance_type = "t2.micro"             # Free Tier eligible
-
+  key_name      = "us-east-1-devops-user" # The exact name as it appears in AWS Console
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
 
