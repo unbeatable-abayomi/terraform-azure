@@ -16,10 +16,10 @@ output "virtual_network_name" {
 }
 
 output "public_ip_name_azure" {
-  value = azurerm_public_ip.example.ip_address
+  #value = azurerm_public_ip.example.ip_address
+  value = azurerm_public_ip.example[*].ip_address
   
 }
-
 output "subnet_name" {
   value = azurerm_subnet.example.name
   

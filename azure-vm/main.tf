@@ -85,21 +85,52 @@ variable "ssh_public_key_path" {
   default     = "~/.ssh/id_ed25519.pub"
 }
 
-resource "azurerm_linux_virtual_machine" "example" {
-  #name                = "example-machine"
-  name                = var.vm_name
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  #size                = "Standard_D2s_v3"
-  size                =  var.vm_size
-  admin_username      = "adminuser"
-  network_interface_ids = [
-    azurerm_network_interface.example.id,
-  ]
+# resource "azurerm_linux_virtual_machine" "example" {
+#   #name                = "example-machine"
+#   name                = var.vm_name
+#   resource_group_name = azurerm_resource_group.example.name
+#   location            = azurerm_resource_group.example.location
+#   #size                = "Standard_D2s_v3"
+#   size                =  var.vm_size
+#   admin_username      = "adminuser"
+#   network_interface_ids = [
+#     azurerm_network_interface.example.id,
+#   ]
   
 
+#   admin_ssh_key {
+#     #username   = "adminuser"
+#     username   = var.usernamessh
+#     public_key = file(pathexpand(var.ssh_public_key_path))
+#   }
+
+#   os_disk {
+#     caching              = "ReadWrite"
+#     storage_account_type = "Standard_LRS"
+#   }
+
+#   source_image_reference {
+#     publisher = "Canonical"
+#     offer     = "0001-com-ubuntu-server-jammy"
+#     sku       = "22_04-lts"
+#     version   = "latest"
+#   }
+# }
+
+
+resource "azurerm_linux_virtual_machine" "example" {
+  count               = var.vm_count
+  name                = "${var.vm_name}-${count.index}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  size                = var.vm_size
+  admin_username      = var.usernamessh
+  
+  network_interface_ids = [
+    azurerm_network_interface.example[count.index].id,
+  ]
+
   admin_ssh_key {
-    #username   = "adminuser"
     username   = var.usernamessh
     public_key = file(pathexpand(var.ssh_public_key_path))
   }
@@ -107,6 +138,8 @@ resource "azurerm_linux_virtual_machine" "example" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
+    # Ensure the disk name is also unique
+    name                 = "osdisk-${count.index}"
   }
 
   source_image_reference {
@@ -117,24 +150,6 @@ resource "azurerm_linux_virtual_machine" "example" {
   }
 }
 
-
-# resource "azurerm_network_security_group" "example" {
-#   name                = "example-nsg"
-#   location            = azurerm_resource_group.example.location
-#   resource_group_name = azurerm_resource_group.example.name
-
-#   security_rule {
-#     name                       = "SSH"
-#     priority                   = 1001
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "22"
-#     source_address_prefix      = "*" # In a real NOC role, you would change this to your home IP
-#     destination_address_prefix = "*"
-#   }
-# }
 
 resource "azurerm_network_security_group" "example" {
   name                = "example-nsg"
@@ -167,8 +182,13 @@ resource "azurerm_network_security_group" "example" {
   }
 }
 
+# resource "azurerm_network_interface_security_group_association" "example" {
+#   network_interface_id      = azurerm_network_interface.example.id
+#   network_security_group_id = azurerm_network_security_group.example.id
+# }
+
 resource "azurerm_network_interface_security_group_association" "example" {
-  network_interface_id      = azurerm_network_interface.example.id
+  count                     = var.vm_count
+  network_interface_id      = azurerm_network_interface.example[count.index].id
   network_security_group_id = azurerm_network_security_group.example.id
 }
-
