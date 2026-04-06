@@ -29,3 +29,8 @@ variable "usernamessh" {
   type = string
   default = "adminuser"
 }
+
+variable "vm_count" {
+  type    = number
+  default = 2  # Set this to 3, 5, or 10 depending on your needs
+}
