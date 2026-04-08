@@ -26,13 +26,20 @@ output "subnet_name" {
 }
 
 
-output "network_interface_name" {
-  value = azurerm_network_interface.example.name
+output "network_interface_names" {
+  value = azurerm_network_interface.example[*].name
   
 }
 
 
-output "linux_virtual_machine_name" {
-  value = azurerm_linux_virtual_machine.example.name
+output "linux_virtual_machine_names" {
+  value = azurerm_linux_virtual_machine.example[*].name
   
+}
+
+output "vm_ip_map" {
+  value = {
+    for ip in azurerm_public_ip.example :
+    ip.name => ip.ip_address
+  }
 }
