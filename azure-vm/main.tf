@@ -180,6 +180,19 @@ resource "azurerm_network_security_group" "example" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  # Add this to your azurerm_network_security_group resource
+  security_rule {
+    name                       = "AllowICMP"
+    priority                   = 1003   # Lower priority than HTTP
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp" # Specific protocol for Ping
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 
 # resource "azurerm_network_interface_security_group_association" "example" {
